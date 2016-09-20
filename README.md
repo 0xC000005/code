@@ -1,2 +1,2 @@
-# code
-Show me the code 
+## TinyLang
+Language DIY
