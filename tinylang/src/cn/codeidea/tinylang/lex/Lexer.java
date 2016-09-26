@@ -8,7 +8,7 @@ import java.util.Map;
  * Copyright(c) 2016, CodeIdea.cn.
  * @Author 0xC000005
  * @Date 2016-09-20
- * 说明: 语法分析
+ * 说明: 词法分析
  */
 
 public class Lexer {
@@ -37,6 +37,8 @@ public class Lexer {
 	}
 	public Lexer(char[] codebuffer){
 		this.codebuffer = codebuffer;
+		ch = codebuffer[0];
+		index = 1;
 	}
 	
 	/**
@@ -183,9 +185,10 @@ public class Lexer {
 	 * 获取下一个字符
 	 */
 	public void getch(){
-		ch =  codebuffer[index++];
-		if(index == codebuffer.length){
-			endfile = true;
+		if(index != codebuffer.length){
+			ch =  codebuffer[index++];
+		}else{
+			endfile =true;
 		}
 	}
 	
@@ -302,5 +305,18 @@ public class Lexer {
 	 */
 	public int getLine(){
 		return line;
+	}
+	
+	/**
+	 * 是否为关键字
+	 * @param name
+	 * @return
+	 */
+	public boolean isKeyword(String name){
+		if(keywords.get(name) != null){
+			return true;
+		}else{
+			return false;
+		}
 	}
 }
