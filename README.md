@@ -1,2 +1,2 @@
 ## TinyLang
-Language DIY
+Language Design
