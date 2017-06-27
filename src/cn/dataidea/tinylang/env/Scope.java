@@ -8,10 +8,10 @@ package cn.dataidea.tinylang.env;
 *@version 1.0
 */
 public interface Scope {
-    public String getScopeName();
-    public Scope getEnclosingScope();
-    public void define(Symbol sym);
-    public Symbol resolve(String name);
-    public void setNextID(int n);
-    public int getNextID();
+    public String getScopeName(); 		 	//名称
+    public Scope getEnclosingScope();		//外部作用域
+    public void define(Symbol sym); 			//在作用域中定义符号
+    public Symbol resolve(String name); 	//根据名称查找
+    public void setID(int n);
+    public int getID();
 }

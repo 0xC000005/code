@@ -25,7 +25,7 @@ import cn.dataidea.tinylang.gen.TinyParser.ExpContext;
 import cn.dataidea.tinylang.gen.TinyParser.ValueContext;
 
 /**
- * Type analysis phase
+ * 类型分析
  */
 
 public class TypePhase extends TinyBaseListener {

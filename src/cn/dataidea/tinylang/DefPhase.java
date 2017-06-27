@@ -31,17 +31,34 @@ public class DefPhase extends TinyBaseListener {
 	boolean on_error = false;
 
 	public DefPhase() {
-		globals = new GlobalScope();
-		initializeTypeSystem();
-		currentScope = globals;
+		globals = new GlobalScope(); 	// 准备全局作用域
+		initializeTypeSystem(); 				// 初始化类型系统
+		currentScope = globals; 			// 作用域初始化为全局作用域
 	}
-
+    
+	/**
+	 * 初始化类型系统
+	 */
 	public void initializeTypeSystem() {
-		globals.define(new BuiltinTypeSymbol("bool"));
-		globals.define(new BuiltinTypeSymbol("int"));
+		globals.define(new BuiltinTypeSymbol("bool")); // bool 类型
+		globals.define(new BuiltinTypeSymbol("int"));    // 整型
 		initializeClassSystem();
 	}
-
+	
+	/**
+	 * 定义类系统, 创建一个顶级类
+	 */
+	public void initializeClassSystem() {
+		ClassSymbol top = new ClassSymbol(ClassSymbol.top, globals, null);
+		top.setID(1);
+		globals.define(top);
+	}
+	
+	/**
+	 * 通过符号名称获取符号类型
+	 * @param name 符号名称
+	 * @return
+	 */
 	public Type getType(String name) {
 		Symbol sym = globals.resolve(name);
 		if (sym instanceof BuiltinTypeSymbol)
@@ -52,6 +69,11 @@ public class DefPhase extends TinyBaseListener {
 			return null;
 	}
 
+	/**
+	 * 保存作用域
+	 * @param ctx
+	 * @param s
+	 */
 	void saveScope(ParseTree ctx, Scope s) {
 		scopes.put(ctx, s);
 	}
@@ -60,21 +82,20 @@ public class DefPhase extends TinyBaseListener {
 		LocalScope s = new LocalScope(currentScope);
 		saveScope(ctx, s);
 		if (currentScope.getScopeName() != "global") {
-			int next_id = currentScope.getNextID();
-			s.setNextID(next_id);
-			System.out.println("Base id of " + s + " is " + next_id);
+			int id = currentScope.getID();
+			s.setID(id);
 		}
 		currentScope = s;
 	}
 
 	public void exitLetInExp(TinyParser.LetInExpContext ctx) {
-		System.out.println("局部作用域: " + currentScope);
-		int n = currentScope.getNextID();
+		System.out.println("let :  " + currentScope+"  id  is " + currentScope.getID() );
+		int n = currentScope.getID();
 		currentScope = currentScope.getEnclosingScope();
 		if (currentScope.getScopeName() != "global") {
-			int next_id = currentScope.getNextID();
+			int id = currentScope.getID();
 			MethodSymbol fun = (MethodSymbol) currentScope;
-			fun.setLocals(n - next_id);
+			fun.setLocals(n - id);
 		}
 	}
 
@@ -85,9 +106,8 @@ public class DefPhase extends TinyBaseListener {
 		if (type != null) {
 			MethodSymbol function = new MethodSymbol(name, type, currentScope);
 			saveScope(ctx, function);
-			int next_id = currentScope.getNextID();
-			function.setNextID(next_id);
-			System.out.println("Base id of " + function + " is " + next_id);
+			int id = currentScope.getID();
+			function.setID(id);
 			currentScope = function;
 		} else {
 			System.err.println("[enterFun] invalid type: " + typeName + " of function " + name);
@@ -96,7 +116,7 @@ public class DefPhase extends TinyBaseListener {
 	}
 
 	public void exitFun(TinyParser.FunContext ctx) {
-		System.out.println("定义函数 : " + currentScope);
+		System.out.println("function  :  " + currentScope+" id  is " +currentScope.getID());
 		currentScope = currentScope.getEnclosingScope();
 	}
 
@@ -110,33 +130,14 @@ public class DefPhase extends TinyBaseListener {
 		if (scope instanceof ClassSymbol) {
 			scope = ((ClassSymbol) scope).initFunction();
 		}
-
 		Symbol var = scope.resolve(name);
 		if (var == null) {
-			System.err.println("此变量不存在 : " + name);
-			on_error = true;
+		    System.err.println("no such variable: " + name);
+		    on_error = true;
 		} else if (!(var instanceof VariableSymbol)) {
-			System.err.println(name + " 不是一个变量");
-			on_error = true;
+		    System.err.println(name + " is not a variable");
+		    on_error = true;
 		}
-	}
-
-	public boolean on_error() {
-		return on_error;
-	} 
-
-	public void initializeClassSystem() {
-		ClassSymbol top = new ClassSymbol(ClassSymbol.top, globals, null);
-		top.setNextID(1);
-		globals.define(top);
-	}
-
-	public ClassSymbol getClass(String name) {
-		Symbol cls = globals.resolve(name);
-		if (cls instanceof ClassSymbol)
-			return (ClassSymbol) cls;
-		else
-			return null;
 	}
 
 	public void enterDefcls(TinyParser.DefclsContext ctx) {
@@ -153,39 +154,29 @@ public class DefPhase extends TinyBaseListener {
 		ClassSymbol cls = new ClassSymbol(name, currentScope, parentClass);
 		currentScope.define(cls);
 		
-		int next_id = parentClass.getNextID();
-		cls.setNextID(next_id);
-		System.out.println("Base id of class " + name + " is " + next_id);
+		int id = parentClass.getID();
+		cls.setID(id);
+		System.out.println( "[ class : "+name + " ] id  is " + id);
 		currentClass = cls;
 		saveScope(ctx, cls);
-
+        
 		MethodSymbol function = new MethodSymbol(name + "_init", (Type) cls, currentClass);
-		function.setNextID(1);
+		function.setID(1);
 		currentScope.define(function);
 		cls.setInitFunction(function);
 
 		MethodSymbol newFun = new MethodSymbol(name + "_new", (Type) cls, currentClass);
-		newFun.setNextID(1);
+		newFun.setID(1);
 		currentScope.define(newFun);
 		cls.setNewFunction(newFun);
 		
 		currentScope = function;
 	}
 
-	public void enterSlots(TinyParser.SlotsContext ctx) {
-		currentScope = currentClass;
-	}
-
-	public void exitSlots(TinyParser.SlotsContext ctx) {
-		System.out.println("定义类 : " + currentScope);
-		currentScope = currentClass.initFunction();
-	}
-
 	public void exitDefcls(TinyParser.DefclsContext ctx) {
 		MethodSymbol init = currentClass.initFunction();
 		MethodSymbol nf = currentClass.newFunction();
-		nf.setNextID(init.getNextID());
-		System.out.println("定义构造函数 : " + currentScope);
+		nf.setID(init.getID());
 		currentScope = globals;
 	}
 
@@ -208,13 +199,11 @@ public class DefPhase extends TinyBaseListener {
 					on_error = true;
 					return;
 				} else if (other != null && currentScope != other.getScope()) {
-					System.out.println("重写父类 slot: " + name);
 					return;
 				}
 			}
 			VariableSymbol var = new VariableSymbol(name, type);
 			currentScope.define(var);
-			System.out.println("定义 slot/variable " + name + " in " + currentScope);
 			if (currentScope instanceof MethodSymbol) {
 				var.setInit(true);
 			}
@@ -223,4 +212,25 @@ public class DefPhase extends TinyBaseListener {
 			on_error = true;
 		}
 	}
+	
+	public void enterSlots(TinyParser.SlotsContext ctx) {
+		currentScope = currentClass;
+	}
+
+	public void exitSlots(TinyParser.SlotsContext ctx) {
+		currentScope = currentClass.initFunction();
+	}
+	
+	public boolean on_error() {
+		return on_error;
+	} 
+
+	public ClassSymbol getClass(String name) {
+		Symbol cls = globals.resolve(name);
+		if (cls instanceof ClassSymbol)
+			return (ClassSymbol) cls;
+		else
+			return null;
+	}
+
 }

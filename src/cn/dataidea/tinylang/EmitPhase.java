@@ -34,7 +34,7 @@ public class EmitPhase extends TinyBaseVisitor<ParseTree> {
 	Scope currentScope;
 	Assembler assem;
 	int dataSize = 0;
-	int top_locals = 0; // for top-level let binding
+	int top_locals = 0;
 	boolean on_error = false;
 	boolean tail_rec = true;
 	boolean need_runtime = false;
@@ -48,19 +48,16 @@ public class EmitPhase extends TinyBaseVisitor<ParseTree> {
 		assem = new Assembler();
 	}
 
-	// @formatter:off
 	public Assembler getAssembly() {
 		return assem;
-	} // @formatter:on
+	}
 
 	public ParseTree visitLetInExp(TinyParser.LetInExpContext ctx) {
 		currentScope = scopes.get(ctx);
 		ParseTree body = visitChildren(ctx);
 		Scope s = currentScope.getEnclosingScope();
-		// special treatment for top-level LET binding
 		if (s.getScopeName() == "global") {
-			// take the maximal if there're multiple top-level LET bindings
-			top_locals = Math.max(top_locals, currentScope.getNextID());
+			top_locals = Math.max(top_locals, currentScope.getID());
 			System.out.println("nlocals for top-level LET: " + top_locals);
 		}
 		currentScope = s;
@@ -183,7 +180,7 @@ public class EmitPhase extends TinyBaseVisitor<ParseTree> {
 	public ParseTree visitFun(TinyParser.FunContext ctx) {
 		currentScope = scopes.get(ctx);
 		MethodSymbol fun = (MethodSymbol) currentScope;
-		int nargs = fun.getNextID(); // scope args + local args
+		int nargs = fun.getID(); // scope args + local args
 		int nargs2 = fun.nargs(); // local args only
 		int nargs1 = nargs - nargs2; // scope args only
 		int nlocals = fun.nlocals();
@@ -264,7 +261,7 @@ public class EmitPhase extends TinyBaseVisitor<ParseTree> {
 
 		// lookup the most specific method
 		MethodSymbol fun = gf.findMethod(argTypes);
-		int last_id = fun.getNextID();
+		int last_id = fun.getID();
 		int base_id = last_id - fun.nargs();
 
 		// 1. push scope arguments
@@ -334,7 +331,7 @@ public class EmitPhase extends TinyBaseVisitor<ParseTree> {
 		String name = init.getName();
 		String initName = assem.newFunctionName(name);
 		init.set_cname(initName);
-		int nargs = init.getNextID();
+		int nargs = init.getID();
 		int nlocals = 0;
 		assem.defineFunction(initName, nargs, nlocals);
 		currentScope = init;
@@ -369,7 +366,7 @@ public class EmitPhase extends TinyBaseVisitor<ParseTree> {
 		String name = nf.getName();
 		String nfName = assem.newFunctionName(name);
 		nf.set_cname(nfName);
-		int nargs = nf.getNextID();
+		int nargs = nf.getID();
 		int nlocals = 1;
 		assem.defineFunction(nfName, nargs, nlocals);
 
@@ -435,7 +432,7 @@ public class EmitPhase extends TinyBaseVisitor<ParseTree> {
 		ClassSymbol cls = (ClassSymbol) currentScope.resolve(name);
 		MethodSymbol nf = cls.newFunction();
 		String nfName = nf.cname();
-		int nslots = cls.getNextID();
+		int nslots = cls.getID();
 
 		// 2. generate code to create an object and call its init function
 		assem.alloca(nslots);
@@ -456,7 +453,7 @@ public class EmitPhase extends TinyBaseVisitor<ParseTree> {
 		argTypes.addAll(getTypes(args));
 		MethodSymbol fun = gf.findMethod(argTypes);
 
-		int last_id = fun.getNextID();
+		int last_id = fun.getID();
 		int base_id = last_id - fun.nargs();
 		// 2. push scope arguments
 		for (int id = 0; id < base_id; id++)

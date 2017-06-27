@@ -62,11 +62,11 @@ public abstract class ScopedSymbol extends Symbol implements Scope {
 		return name;
 	}
 
-	public int getNextID() {
+	public int getID() {
 		return next_id;
 	}
 
-	public void setNextID(int n) {
+	public void setID(int n) {
 		next_id = n;
 	}
 }

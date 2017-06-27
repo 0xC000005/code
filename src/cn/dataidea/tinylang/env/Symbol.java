@@ -10,8 +10,8 @@ package cn.dataidea.tinylang.env;
 public class Symbol {
 	String name; 	// 符号名称
 	String cname;	// 代码生成时的代码名称
-	Scope scope; 	// 符号对应一个生存范围
-	Type type; 		// 类型
+	Scope scope; 	// 符号对应一个作用域
+	Type type; 		// 符号对应一种类型
 
 	public Symbol(String name, Type type) {
 		this(name);

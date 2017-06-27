@@ -12,19 +12,15 @@ import cn.dataidea.tinylang.gen.TinyBaseListener;
 *@version 1.0
 */
 public class CountPhase extends TinyBaseListener{
-	 int nodes;
-	 int terms;
-	
+	 int nodes; //节点
+	 int terms;  //终结符
 	
 	@Override
 	public void enterEveryRule(ParserRuleContext ctx) {
-		super.enterEveryRule(ctx);
 		nodes++;
-	
 	}
 	@Override
 	public void visitTerminal(TerminalNode node) {
-		super.visitTerminal(node);
 		terms++;
 	}
 	public int getNodes() {

@@ -6,9 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <p>
- * 类符号
- * </p>
+ * <p> 类 </p>
  * 
  * @author xiehui
  * @createTime 下午4:20:48

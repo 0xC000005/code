@@ -1,99 +1,93 @@
 grammar Tiny;
 
-prog   : (block SEMIC)+ ;
+prog   	: (block )+ ;
 
-block  : body		#codeBody
-       | varasm		#globalVar
-       | defcls		#classDef
-       ;
+block	: body		#codeBody
+       		| varasm	#globalVar
+       		| defcls		#classDef
+       		;
 
-body   : exp		#singleExp
-       | let exp	#letInExp
-       ;
-       
-defcls : CLASS ID (LPAR ( vardec (COMMA vardec)* )? RPAR)?
-	 ASM OBJECT supers? slots ;
+body   	: exp			#singleExp
+       		| let exp	#letInExp
+       		;
 
-supers : INHER ID (LPAR (exp (COMMA exp)*)? RPAR)? SEMIC;
+defcls 	: CLASS ID supers? CLPAR slots CRPAR;
 
-slots  : (slotd SEMIC)* END ;
+supers : EXTENDS ID ;
 
-slotd  : vardec		#slotNoInit
-       | varasm		#slotInit
-       ;
+slots  	: (slotd SEMIC)* ;
 
-let    : LET (dec SEMIC)+ IN ;
+slotd  	: vardec		#slotNoInit
+       		| varasm		#slotInit
+       		;
 
-dec    : varasm         #varAssignment
-       | fun            #funDeclaration
-       ;
+let    	: LET (dec SEMIC)+ DO ;
 
-fun    : type ID LPAR ( vardec ( COMMA vardec)* )? RPAR body ;
+dec    	: varasm         	#varAssignment
+       		| fun            		#funDeclaration
+       		;
 
-varasm : vardec ASM exp ;
-vardec : type ID ;
+fun    	: type ID LPAR ( vardec ( COMMA vardec)* )? RPAR body ;
 
-type   : INT
-       | BOOL
-       | ID
-       ;
+varasm 	: vardec ASSIGN exp ;
+vardec 	: type ID ;
 
-exp    : left=term (PLUS right=exp)? ;
-term   : left=factor (TIMES right=term)? ;
-factor : left=value (EQ right=value)? ;
+type   	: INT
+       		| BOOL
+       		| ID
+      		;
 
-value  : INTEGER					#intVal
-       | ( TRUE | FALSE )				#boolVal
-       | LPAR exp RPAR					#baseExp
-       | IF cond=exp THEN CLPAR thenBranch=exp CRPAR ELSE CLPAR elseBranch=exp CRPAR #ifExp
-       | ID						#varExp
-       | ID LPAR (exp (COMMA exp)* )? RPAR		#funExp
-       | PRINT exp					#printExp
-       | 'new' ID (LPAR (exp (COMMA exp)*)? RPAR)?	#classExp
-       | value '.' ID LPAR (exp (COMMA exp)*)? RPAR	#methodExp
-       | value '.' ID					#slotExp
-       ;
-    
-SEMIC  : ';' ;
-COLON  : ':' ;
-COMMA  : ',' ;
-EQ     : '==' ;
-ASM    : '=' ;
-PLUS   : '+' ;
-TIMES  : '*' ;
-TRUE   : 'true' ;
-FALSE  : 'false' ;
-LPAR   : '(' ;
-RPAR   : ')' ;
-CLPAR  : '{' ;
-CRPAR  : '}' ;
-IF     : 'if' ;
-THEN   : 'then' ;
-ELSE   : 'else' ;
-PRINT  : 'print' ; 
-LET    : 'let' ;
-IN     : 'in' ;
-VAR    : 'var' ;
-FUN    : 'fun' ;
-INT    : 'int' ;
-BOOL   : 'bool' ;
+exp    	: left=term (PLUS right=exp)? ;
+term   	: left=factor (TIMES right=term)? ;
+factor 	: left=value (EQ right=value)? ;
 
+value  	: INTEGER					#intVal
+       		| ( TRUE | FALSE )				#boolVal
+       		| LPAR exp RPAR					#baseExp
+       		| IF cond=exp THEN CLPAR thenBranch=exp CRPAR ELSE CLPAR elseBranch=exp CRPAR #ifExp
+       		| ID						#varExp
+       		| ID LPAR (exp (COMMA exp)* )? RPAR		#funExp
+       		| PRINT exp					#printExp
+       		| 'new' ID (LPAR (exp (COMMA exp)*)? RPAR)?	#classExp
+       		| value '.' ID LPAR (exp (COMMA exp)*)? RPAR	#methodExp
+       		| value '.' ID					#slotExp
+       		;
 
-CLASS  : 'class' ;
-OBJECT : 'object' ;
-INHER  : 'inherit' ;
-END    : 'end' ;
+SEMIC  		: ';' ;
+COLON 	 	: ':' ;
+COMMA  	: ',' ;
+EQ     			: '==' ;
+ASSIGN 		: '=' ;
+PLUS   			: '+' ;
+TIMES  		: '*' ;
+TRUE   			: 'true' ;
+FALSE  		: 'false' ;
+LPAR   			: '(' ;
+RPAR   		: ')' ;
+CLPAR 		: '{' ;
+CRPAR  		: '}' ;
+IF     				: 'if' ;
+THEN   		: 'then' ;
+ELSE   			: 'else' ;
+PRINT  		: 'print' ; 
+LET    			: 'let' ;
+DO     			: 'do' ;
+VAR    			: 'var' ;
+FUN   			: 'fun' ;
+INT    			: 'int' ;
+BOOL   		: 'bool' ;
 
-fragment DIGIT : '0'..'9';    
-INTEGER        : ('-')?DIGIT+;
+CLASS  		: 'class' ;
+EXTENDS  	: 'extends' ;
 
-// ID
-fragment CHAR  : 'a'..'z' | 'A'..'Z' ;
-ID             : CHAR (CHAR | DIGIT)* ;
+fragment DIGIT 			: '0'..'9';    
+INTEGER        				: ('-')?DIGIT+;
 
+fragment CHAR  		: 'a'..'z' | 'A'..'Z' ;
+ID            					 	: CHAR (CHAR | DIGIT)* ;
 
-WS             : [ \t\r\n]+ -> skip;
-LINECOMENTS    : '//' .*? [\r\n]+ -> skip;
-BLOCKCOMENTS   : '/*' .*? '*/' -> skip;
+WS             					: [ \t\r\n]+ -> skip;
+LINECOMENTS    		: '//' .*? [\r\n]+ -> skip;
+BLOCKCOMENTS   		: '/*' .*? '*/' -> skip;
 
-ERR            : . -> channel(HIDDEN); 
+ERR           			 		: . -> channel(HIDDEN); 

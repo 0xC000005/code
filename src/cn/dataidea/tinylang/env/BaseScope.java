@@ -5,6 +5,7 @@ import java.util.Map;
 
 /**
  * <p> 作用域 </p>
+ * <p> 每一个作用域都存在一个符号表, 用来管理此作用域下的所有符号. </p>
  * 
  * @author xiehui
  * @createTime 下午3:16:39
@@ -13,7 +14,7 @@ import java.util.Map;
 public abstract class BaseScope implements Scope {
 	Scope enclosingScope;  // 外围作用域
 	Map<String, Symbol> symbols = new LinkedHashMap<String, Symbol>(); // 符号表
-	int next_id = 0;  // ID
+	int id = 0;  // ID
 
 	public BaseScope(Scope parent) {
 		enclosingScope = parent;
@@ -41,10 +42,13 @@ public abstract class BaseScope implements Scope {
 		sym.scope = this;
 		if (sym instanceof VariableSymbol) {
 			VariableSymbol var = (VariableSymbol) sym;
-			var.id = next_id++; 
+			var.id = id++; 
 		}
 	}
 
+	/**
+	 * 输出此作用域范围所有符号的名称
+	 */
 	public String toString() {
 		return symbols.keySet().toString();
 	}
@@ -53,11 +57,11 @@ public abstract class BaseScope implements Scope {
 		return enclosingScope;
 	}
 
-	public void setNextID(int n) {
-		next_id = n;
+	public void setID(int n) {
+		id = n;
 	}
 
-	public int getNextID() {
-		return next_id;
+	public int getID() {
+		return id;
 	}
 }
